@@ -102,5 +102,7 @@ def print_grid_maze(width, height, edges):
     sys.stdout.flush()
 
 if __name__ == '__main__':
-    print_grid_maze(10, 10, gen_grid_maze(10, 10))
+    width = int(sys.argv[1])
+    height = int(sys.argv[2])
+    print_grid_maze(width, height, gen_grid_maze(width, height))
 
