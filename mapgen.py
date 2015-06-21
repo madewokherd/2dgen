@@ -66,13 +66,17 @@ def print_map(width, height, values):
         sys.stdout.write('\n')
     sys.stdout.flush()
 
-probabilities = {}
-probabilities[None] = (2, ((1,'.'), (1,'#')))
-for d in directions:
-    probabilities['.', d] = (10, ((1,'#'),(9,'.')))
-    probabilities['#', d] = (10, ((1,'.'),(9,'#')))
+if sys.argv[1] == 'bitmap':
+    width = int(sys.argv[2])
+    height = int(sys.argv[3])
 
-values = generate_map(15, 15, probabilities)
+    probabilities = {}
+    probabilities[None] = (2, ((1,'.'), (1,'#')))
+    for d in directions:
+        probabilities['.', d] = (10, ((1,'#'),(9,'.')))
+        probabilities['#', d] = (10, ((1,'.'),(9,'#')))
 
-print_map(15, 15, values)
+    values = generate_map(width, height, probabilities)
+
+    print_map(width, height, values)
 
