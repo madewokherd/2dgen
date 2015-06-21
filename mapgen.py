@@ -66,6 +66,87 @@ def print_map(width, height, values):
         sys.stdout.write('\n')
     sys.stdout.flush()
 
+def parse_puzzlescript_levels(levels_text):
+    levels = []
+    this_level = []
+
+    for line in levels_text.splitlines():
+        line = line.lower().strip()
+        if line.startswith('message '):
+            continue
+
+        if not line:
+            if this_level:
+                levels.append(this_level)
+                this_level = []
+            continue
+
+        this_level.append(line)
+
+    parsed_levels = []
+
+    for level in levels:
+        width = len(level[0])
+        height = len(level)
+        parsed = [None]*(width * height)
+
+        for y, line in enumerate(level):
+            parsed[y*width:y*width+width] = list(line)
+
+        parsed_levels.append((width, height, parsed))
+
+    probabilities = {}
+
+    # FIXME: add rotations/reflections
+
+    # calculate probabilities[None]
+    total_weights = 0
+    weights = {}
+    for width, height, objects in parsed_levels:
+        for obj in objects:
+            total_weights += 1
+            weights[obj] = weights.get(obj,0)+1
+
+    probabilities[None] = (total_weights, [(w, obj) for obj, w in weights.iteritems()])
+
+    for dx, dy in directions:
+        total_weights = {}
+        weights = {}
+        
+        for width, height, objects in parsed_levels:
+            if dx == -1:
+                start_points = [(width-1, y) for y in range(height)]
+            elif dx == 1:
+                start_points = [(0, y) for y in range(height)]
+            elif dy == -1:
+                start_points = [(x, height-1) for x in range(width)]
+            elif dy == 1:
+                start_points = [(x, 0) for x in range(width)]
+
+            for sx, sy in start_points:
+                while True:
+                    nx = sx + dx
+                    ny = sy + dy
+                    if not (0 <= nx < width and 0 <= ny < height):
+                        break
+
+                    sobj = objects[sy*width + sx]
+                    nobj = objects[ny*width + nx]
+                    
+                    total_weights[sx] = total_weights.get(sx, 0) + 1
+                    weights[sx, sy] = weights.get((sx, sy), 0) + 1
+
+                    sx = nx
+                    sy = ny
+
+        for obj, total in total_weights.iteritems():
+            probabilities[obj, (dx,dy)] = (total, [])
+
+        for (sobj, nobj), weight in weights.iteritems():
+            probabilities[sobj, (dx,dy)][1].append((weight, nobj))
+
+    return probabilities
+
 if sys.argv[1] == 'bitmap':
     width = int(sys.argv[2])
     height = int(sys.argv[3])
@@ -75,6 +156,17 @@ if sys.argv[1] == 'bitmap':
     for d in directions:
         probabilities['.', d] = (10, ((1,'#'),(9,'.')))
         probabilities['#', d] = (10, ((1,'.'),(9,'#')))
+
+    values = generate_map(width, height, probabilities)
+
+    print_map(width, height, values)
+elif sys.argv[1] == 'puzzlescript':
+    width = int(sys.argv[2])
+    height = int(sys.argv[3])
+    
+    level_text = sys.stdin.read()
+
+    probabilities = parse_puzzlescript_levels(level_text)
 
     values = generate_map(width, height, probabilities)
 
