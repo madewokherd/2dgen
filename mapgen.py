@@ -70,9 +70,19 @@ def parse_puzzlescript_levels(levels_text):
     levels = []
     this_level = []
 
+    rotations = {}
+
     for line in levels_text.splitlines():
         line = line.lower().strip()
         if line.startswith('message '):
+            continue
+
+        if line.startswith('rotations '):
+            for r in line.split()[1:]:
+                rotations[r[0]] = r[1]
+                rotations[r[1]] = r[2]
+                rotations[r[2]] = r[3]
+                rotations[r[3]] = r[0]
             continue
 
         if not line:
@@ -97,7 +107,31 @@ def parse_puzzlescript_levels(levels_text):
 
     probabilities = {}
 
-    # FIXME: add rotations/reflections
+    # add rotations
+    if rotations:
+        to_rotate = parsed_levels
+        for x in range(3):
+            rotated_levels = []
+            
+            for width, height, old_objects in to_rotate:
+                rotated = [None] * (height * width)
+                
+                for y in range(height):
+                    for x in range(width):
+                        rx = height - 1 - y
+                        ry = x
+                        
+                        rotated[rx + ry * height] = rotations.get(old_objects[x + y * width], old_objects[x + y * width])
+
+                rotated_levels.append((height, width, rotated))
+
+            parsed_levels.extend(rotated_levels)
+            
+            to_rotate = rotated_levels
+
+    # FIXME: add reflections?
+
+    # FIXME: add inverses?
 
     # calculate probabilities[None]
     total_weights = 0
