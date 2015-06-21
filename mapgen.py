@@ -162,7 +162,7 @@ def parse_puzzlescript_levels(levels_text):
             total_weights += 1
             weights[obj] = weights.get(obj,0)+1
 
-    probabilities[None] = (total_weights, [(w, obj) for obj, w in weights.iteritems()])
+    probabilities[None] = (total_weights, [(w, obj) for obj, w in weights.items()])
 
     for dx, dy in directions:
         total_weights = {}
@@ -194,10 +194,10 @@ def parse_puzzlescript_levels(levels_text):
                     sx = nx
                     sy = ny
 
-        for obj, total in total_weights.iteritems():
+        for obj, total in total_weights.items():
             probabilities[obj, (dx,dy)] = (total, [])
 
-        for (sobj, nobj), weight in weights.iteritems():
+        for (sobj, nobj), weight in weights.items():
             probabilities[sobj, (dx,dy)][1].append((weight, nobj))
 
     return probabilities
